@@ -1,0 +1,50 @@
+name: Create Tag Based on Edited File
+
+on:
+  push:
+    branches:
+      - "**"  # Runs on all branches
+
+jobs:
+  create_tag:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Needed to access history and tags
+
+      - name: Get branch name
+        run: |
+          BRANCH_NAME="${GITHUB_REF#refs/heads/}"
+          echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
+
+      - name: Get changed files in the push
+        run: |
+          FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }})
+          echo "FILES<<EOF" >> $GITHUB_ENV
+          echo "$FILES" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
+      - name: Create tags for changed files
+        run: |
+          for FILE in $FILES; do
+            BASENAME=$(basename "$FILE")
+            if [ ! -f "$FILE" ]; then
+              continue
+            fi
+
+            EXISTING_TAGS=$(git tag --list "${BRANCH_NAME}_${BASENAME}_v*")
+            if [ -z "$EXISTING_TAGS" ]; then
+              VERSION=1
+            else
+              VERSION=$(echo "$EXISTING_TAGS" | sed -E 's/.*_v([0-9]+)/\1/' | sort -n | tail -1)
+              VERSION=$((VERSION + 1))
+            fi
+
+            NEW_TAG="${BRANCH_NAME}_${BASENAME}_v${VERSION}"
+            echo "Creating tag: $NEW_TAG"
+            git tag "$NEW_TAG"
+            git push origin "$NEW_TAG"
+          done
