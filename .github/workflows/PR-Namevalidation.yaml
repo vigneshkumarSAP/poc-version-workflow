@@ -1,0 +1,24 @@
+name: PR Title Policy Check
+
+on:
+  pull_request:
+    types: [opened, edited, reopened, synchronize]
+
+jobs:
+  check-pr-title:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check PR Title
+        run: |
+          echo "Checking PR title: ${{ github.event.pull_request.title }}"
+
+          TITLE="${{ github.event.pull_request.title }}"
+
+          # Regex: PolicyName-1234 (letters + dash + digits)
+          if [[ ! "$TITLE" =~ ^[A-Za-z]+-[0-9]+$ ]]; then
+            echo "❌ Invalid PR title format!"
+            echo "Title must follow: PolicyName-1234 (Example: SecurityPolicy-101)"
+            exit 1
+          fi
+
+          echo "✅ PR title format is valid."
