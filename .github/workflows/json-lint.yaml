@@ -13,12 +13,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install jsonlint
+      - name: Validate JSON files
         run: |
           npm install -g jsonlint
 
-      - name: Run JSONLint on changed files
-        run: |
           FILES=$(git diff --name-only origin/main...HEAD | grep '\.json$' || true)
 
           if [ -z "$FILES" ]; then
@@ -26,8 +24,7 @@ jobs:
             exit 0
           fi
 
-          echo "Validating JSON files:"
           for file in $FILES; do
             echo "Checking $file..."
-            jsonlint -q "$file" || { echo "❌ Invalid JSON in $file"; exit 1; }
+            jsonlint "$file" || { echo "❌ Invalid JSON in $file"; exit 1; }
           done
