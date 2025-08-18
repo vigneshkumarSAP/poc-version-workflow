@@ -22,15 +22,21 @@ jobs:
 
       - name: Get changed files in the push
         run: |
+          # Get changed files between previous commit and current commit
           FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }})
-          echo "FILES<<EOF" >> $GITHUB_ENV
+    
+          # Export to GitHub environment variable
+          echo "CHANGED_FILES<<EOF" >> $GITHUB_ENV
           echo "$FILES" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
+
       - name: Show Changes in Each File
         run: |
+          echo "Changed files: $CHANGED_FILES"
+          # Loop over each file
           for FILE in $CHANGED_FILES; do
             echo "=== Changes in $FILE ==="
-            git diff origin/${{ github.event.pull_request.base.ref }}...HEAD -- $FILE || git diff HEAD~1 HEAD -- $FILE
+            git diff ${{ github.event.before }} ${{ github.sha }} -- "$FILE"
             echo ""
           done
 
