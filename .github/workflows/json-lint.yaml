@@ -13,14 +13,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Validate JSON files
+      - name: Validate all JSON files
         run: |
           npm install -g jsonlint
 
-          FILES=$(git diff --name-only origin/main...HEAD | grep '\.json$' || true)
+          FILES=$(find . -name "*.json")
 
           if [ -z "$FILES" ]; then
-            echo "No JSON files changed, skipping."
+            echo "No JSON files found, skipping."
             exit 0
           fi
 
