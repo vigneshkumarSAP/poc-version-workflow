@@ -26,6 +26,13 @@ jobs:
           echo "FILES<<EOF" >> $GITHUB_ENV
           echo "$FILES" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
+      - name: Show Changes in Each File
+        run: |
+          for FILE in $CHANGED_FILES; do
+            echo "=== Changes in $FILE ==="
+            git diff origin/${{ github.event.pull_request.base.ref }}...HEAD -- $FILE || git diff HEAD~1 HEAD -- $FILE
+            echo ""
+          done
 
       - name: Configure git for GitHub Actions
         run: |
