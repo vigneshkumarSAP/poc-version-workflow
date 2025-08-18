@@ -1,0 +1,34 @@
+name: JSON Lint Check
+
+on:
+  push:
+    branches:
+      - "**"   # Run on all branches
+
+jobs:
+  jsonlint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install jsonlint
+        run: |
+          npm install -g jsonlint
+
+      - name: Run jsonlint on changed JSON files
+        run: |
+          FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD | grep '\.json$' || true)
+          if [ -z "$FILES" ]; then
+            echo "No JSON files changed, skipping."
+            exit 0
+          fi
+
+          echo "Checking JSON files:"
+          echo "$FILES"
+
+          for FILE in $FILES; do
+            echo "Linting $FILE..."
+            jsonlint -q "$FILE"
+          done
